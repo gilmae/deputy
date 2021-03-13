@@ -33,7 +33,13 @@ func (o *Organisation) SetRoles(roles []Role) {
 	o.UsersInRole = make(map[int][]User)
 	for _, role := range roles {
 		o.Roles[role.Id] = role
-		// TODO Check if users exist and remap
 		o.UsersInRole[role.Id] = make([]User, 0)
+	}
+}
+
+func (o *Organisation) SetUsers(users []User) {
+	o.Users = make(map[int]User)
+	for _, user := range users {
+		o.Users[user.Id] = user
 	}
 }

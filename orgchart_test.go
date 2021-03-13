@@ -7,8 +7,8 @@ func TestSetRoles(t *testing.T) {
 	tests := [][]Role{
 		[]Role{Role{Id: 1, Name: "foo", Parent: 0}},
 		[]Role{
-			Role{Id:1, Name:"bar", Parent:0},
-			Role{Id:2, Name:"baz", Parent:1},
+			Role{Id: 1, Name: "bar", Parent: 0},
+			Role{Id: 2, Name: "baz", Parent: 1},
 		},
 	}
 
@@ -43,5 +43,35 @@ func TestSetRoles(t *testing.T) {
 			}
 		}
 	}
+}
 
+func TestSetUsers(t *testing.T) {
+	tests := [][]User{
+		[]User{User{Id: 1, Name: "foo", Role: 1}},
+		[]User{
+			User{Id: 1, Name: "bar", Role: 1},
+			User{Id: 2, Name: "baz", Role: 2},
+		},
+	}
+
+	for _, users := range tests {
+		o := NewOrganisation()
+		o.SetUsers(users)
+
+		if len(o.Users) != len(users) {
+			t.Errorf("Incorrect number of users in organisation, expected %d, got %d", len(users), len(o.Users))
+		}
+
+
+		for _, user := range users {
+			u, ok := o.Users[user.Id]
+			if !ok {
+				t.Fatalf("Could not resolve User# %d in organisation users", user.Id)
+			}
+
+			if u != user {
+				t.Errorf("User does not match, expected %+v, got %+v", users[0], u)
+			}
+		}
+	}
 }
