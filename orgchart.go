@@ -48,11 +48,21 @@ func (o *Organisation) SetRoles(roles []Role) {
 
 		o.UsersInRole[role.Id] = make([]User, 0)
 	}
+	o.mapUsersToRoles()
 }
 
 func (o *Organisation) SetUsers(users []User) {
 	o.Users = make(map[int]User)
 	for _, user := range users {
 		o.Users[user.Id] = user
+	}
+	o.mapUsersToRoles()
+}
+
+func (o *Organisation) mapUsersToRoles() {
+	for _, user := range o.Users {
+		if users, ok := o.UsersInRole[user.Role]; ok {
+			o.UsersInRole[user.Role] = append(users, user)
+		}
 	}
 }

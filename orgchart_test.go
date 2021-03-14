@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+type UserInRoleTest struct {
+	roleId int
+	users  []User
+}
+
 func TestSetRoles(t *testing.T) {
 
 	tests := [][]Role{
@@ -43,6 +48,58 @@ func TestSetRoles(t *testing.T) {
 			}
 			if len(users) != 0 {
 				t.Errorf("Users in role not empty for Role#%d", role.Id)
+			}
+		}
+	}
+}
+
+func TestSetRolesWithExistingUsers(t *testing.T) {
+	userData := []User{
+		User{Id: 1, Name: "doh", Role: 1},
+		User{Id: 2, Name: "ray", Role: 2},
+		User{Id: 3, Name: "me", Role: 2},
+	}
+	roles := []Role{
+		Role{Id: 1, Name: "foo", Parent: 0},
+		Role{Id: 2, Name: "bar", Parent: 1},
+		Role{Id: 3, Name: "baz", Parent: 1},
+	}
+
+	tests := []UserInRoleTest{
+		{
+			roleId: 1,
+			users:  userData[0:1],
+		},
+		{
+			roleId: 2,
+			users:  userData[1:3],
+		},
+		 {
+		 	roleId: 3,
+		 	users:  []User{},
+		 },
+	}
+
+	o := NewOrganisation()
+	o.SetUsers(userData)
+	o.SetRoles(roles)
+
+	for _, tt := range tests {
+		users, ok := o.UsersInRole[tt.roleId]
+		if !ok {
+			t.Errorf("Could not resolve users in Role #%d", tt.roleId)
+		}
+
+		if len(users) != len(tt.users) {
+			t.Errorf("Incorrect number of users in Role #%d, expected %d, got %d",
+				tt.roleId,
+				len(tt.users),
+				len(users))
+		}
+
+		for _,u := range tt.users {
+			if !containsUser(users, u) {
+				t.Errorf("User not found in role, got %+v", users)
 			}
 		}
 	}
@@ -116,4 +173,65 @@ func TestSetUsers(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSetUsersWithExistingRoles(t *testing.T) {
+	userData := []User{
+		User{Id: 1, Name: "doh", Role: 1},
+		User{Id: 2, Name: "ray", Role: 2},
+		User{Id: 3, Name: "me", Role: 2},
+	}
+	roles := []Role{
+		Role{Id: 1, Name: "foo", Parent: 0},
+		Role{Id: 2, Name: "bar", Parent: 1},
+		Role{Id: 3, Name: "baz", Parent: 1},
+	}
+
+	tests := []UserInRoleTest{
+		{
+			roleId: 1,
+			users:  userData[0:1],
+		},
+		{
+			roleId: 2,
+			users:  userData[1:3],
+		},
+		 {
+		 	roleId: 3,
+		 	users:  []User{},
+		 },
+	}
+
+	o := NewOrganisation()
+	o.SetRoles(roles)
+	o.SetUsers(userData)
+
+	for _, tt := range tests {
+		users, ok := o.UsersInRole[tt.roleId]
+		if !ok {
+			t.Errorf("Could not resolve users in Role #%d", tt.roleId)
+		}
+
+		if len(users) != len(tt.users) {
+			t.Errorf("Incorrect number of users in Role #%d, expected %d, got %d",
+				tt.roleId,
+				len(tt.users),
+				len(users))
+		}
+
+		for _,u := range tt.users {
+			if !containsUser(users, u) {
+				t.Errorf("User not found in role, got %+v", users)
+			}
+		}
+	}
+}
+
+func containsUser(users []User, user User) bool {
+	for _,u := range users {
+		if u==user {
+			return true
+		}
+	}
+	return false
 }
