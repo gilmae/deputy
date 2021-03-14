@@ -14,6 +14,8 @@ type User struct {
 
 type Organisation struct {
 	Roles map[int]Role
+	roleTree map[int][]int
+
 	Users map[int]User
 
 	UsersInRole map[int][]User
@@ -23,6 +25,7 @@ type Organisation struct {
 func NewOrganisation() *Organisation{
 	return &Organisation{
 		Roles: make(map[int]Role),
+		roleTree: make(map[int][]int),
 		Users: make(map[int]User),
 		UsersInRole: make(map[int][]User),
 	}
@@ -30,9 +33,19 @@ func NewOrganisation() *Organisation{
 
 func (o *Organisation) SetRoles(roles []Role) {
 	o.Roles = make(map[int]Role)
+	o.roleTree = make(map[int][]int)
+
 	o.UsersInRole = make(map[int][]User)
 	for _, role := range roles {
 		o.Roles[role.Id] = role
+		
+		// Forgo referential integrity check for now
+		if _,ok := o.roleTree[role.Parent]; !ok {
+			o.roleTree[role.Parent] = []int {role.Id}
+		} else {
+			o.roleTree[role.Parent] = append(o.roleTree[role.Parent], role.Id)
+		}
+
 		o.UsersInRole[role.Id] = make([]User, 0)
 	}
 }
