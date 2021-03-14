@@ -1,4 +1,3 @@
-
 package orgchart
 
 import (
@@ -6,39 +5,53 @@ import (
 	"sort"
 )
 
+// Role represents a role within an organisation, ex: System Administrator.
+// Roles are heirarchical; Parent is the role that supervises the given role
 type Role struct {
 	Id     int
 	Name   string
 	Parent int
 }
 
+// User represents a User within an organisation.
 type User struct {
 	Id   int
 	Name string
 	Role int
 }
 
+// Organisation represents the collection of roles and users with an organisation.
 type Organisation struct {
-	Roles    map[int]Role
+	roles    map[int]Role
 	roleTree map[int][]int
 
-	Users map[int]User
+	users map[int]User
 
 	usersInRole map[int][]User
 }
 
+// NewOrganisation constructs a new Organisation and initialises data structures
 func NewOrganisation() *Organisation {
 	return &Organisation{
-		Roles:       make(map[int]Role),
+		roles:       make(map[int]Role),
 		roleTree:    make(map[int][]int),
-		Users:       make(map[int]User),
+		users:       make(map[int]User),
 		usersInRole: make(map[int][]User),
 	}
 }
 
+// GetSubordinates queries the users and roles mappings to build a list of subordinate users,
+// including subordinates of subordinates
 func (o *Organisation) GetSubordinates(userId int) ([]User, error) {
 	found := make(map[int]User)
-	o.mapSubordinates(userId, found)
+
+	user, ok := o.users[userId]
+
+	if !ok {
+		return nil, fmt.Errorf("User not found")
+	}
+
+	o.mapSubordinates(user, found)
 
 	subordinates := []User{}
 
@@ -53,13 +66,14 @@ func (o *Organisation) GetSubordinates(userId int) ([]User, error) {
 	return subordinates, nil
 }
 
+// SetRoles setups the organisations roles
 func (o *Organisation) SetRoles(roles []Role) {
-	o.Roles = make(map[int]Role)
+	o.roles = make(map[int]Role)
 	o.roleTree = make(map[int][]int)
 
 	o.usersInRole = make(map[int][]User)
 	for _, role := range roles {
-		o.Roles[role.Id] = role
+		o.roles[role.Id] = role
 
 		// Forgo referential integrity check for now
 		if _, ok := o.roleTree[role.Parent]; !ok {
@@ -73,45 +87,40 @@ func (o *Organisation) SetRoles(roles []Role) {
 	o.mapUsersToRoles()
 }
 
+// SetUsers setups the users within an organisation
 func (o *Organisation) SetUsers(users []User) {
-	o.Users = make(map[int]User)
+	o.users = make(map[int]User)
 	for _, user := range users {
-		o.Users[user.Id] = user
+		o.users[user.Id] = user
 	}
 	o.mapUsersToRoles()
 }
 
-func (o *Organisation) mapSubordinates(userId int, found map[int]User) (error) {
-	user, ok := o.Users[userId]
-	
-	if !ok {
-		return fmt.Errorf("User not found")
-	}
-
+func (o *Organisation) mapSubordinates(user User, found map[int]User) {
+	// Find subroles for the user's role. If the user has no subroles, no need to process further
 	subRoles, ok := o.roleTree[user.Role]
 	if !ok {
-		return nil
+		return
 	}
 
 	for _, roleId := range subRoles {
 		if users, ok := o.usersInRole[roleId]; ok {
 			for _, u := range users {
+				// If the user is not already in the foudn map, add and find their subordinates
+				// If they are found, don't re-process them - avoid circular orgcharts
 				if _, ok := found[u.Id]; !ok {
 					found[u.Id] = u
-					o.mapSubordinates(u.Id, found)
+					o.mapSubordinates(u, found)
 				}
 			}
 		}
 	}
-
-	return nil
 }
 
 func (o *Organisation) mapUsersToRoles() {
-	for _, user := range o.Users {
+	for _, user := range o.users {
 		if users, ok := o.usersInRole[user.Role]; ok {
 			o.usersInRole[user.Role] = append(users, user)
 		}
 	}
 }
-

@@ -63,16 +63,16 @@ func TestSetRoles(t *testing.T) {
 		o := NewOrganisation()
 		o.SetRoles(roles)
 
-		if len(o.Roles) != len(roles) {
-			t.Errorf("Incorrect number of roles in organisation, expected %d, got %d", len(roles), len(o.Roles))
+		if len(o.roles) != len(roles) {
+			t.Errorf("Incorrect number of roles in organisation, expected %d, got %d", len(roles), len(o.roles))
 		}
 
 		if len(o.usersInRole) != len(roles) {
-			t.Errorf("Incorrect number of roles in user to role mapping in organisation, expected %d, got %d", 1, len(o.Roles))
+			t.Errorf("Incorrect number of roles in user to role mapping in organisation, expected %d, got %d", 1, len(o.roles))
 		}
 
 		for _, role := range roles {
-			r, ok := o.Roles[role.Id]
+			r, ok := o.roles[role.Id]
 			if !ok {
 				t.Fatalf("Could not resolve Role# %d in organisation roles", role.Id)
 			}
@@ -146,12 +146,12 @@ func TestSetUsers(t *testing.T) {
 		o := NewOrganisation()
 		o.SetUsers(expectedUsers)
 
-		if len(o.Users) != len(expectedUsers) {
-			t.Errorf("Incorrect number of expectedUsers in organisation, expected %d, got %d", len(expectedUsers), len(o.Users))
+		if len(o.users) != len(expectedUsers) {
+			t.Errorf("Incorrect number of expectedUsers in organisation, expected %d, got %d", len(expectedUsers), len(o.users))
 		}
 
 		for _, user := range expectedUsers {
-			u, ok := o.Users[user.Id]
+			u, ok := o.users[user.Id]
 			if !ok {
 				t.Fatalf("Could not resolve User# %d in organisation expectedUsers", user.Id)
 			}
