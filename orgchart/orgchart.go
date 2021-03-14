@@ -1,3 +1,4 @@
+
 package orgchart
 
 import (
@@ -16,8 +17,6 @@ type User struct {
 	Name string
 	Role int
 }
-
-type Users []User
 
 type Organisation struct {
 	Roles    map[int]Role
@@ -38,32 +37,19 @@ func NewOrganisation() *Organisation {
 }
 
 func (o *Organisation) GetSubordinates(userId int) ([]User, error) {
+	found := make(map[int]User)
+	o.mapSubordinates(userId, found)
+
 	subordinates := []User{}
-	user, ok := o.Users[userId]
-	
-	if !ok {
-		return subordinates, fmt.Errorf("User not found")
+
+	for _, user := range found {
+		subordinates = append(subordinates, user)
 	}
 
-	subRoles, ok := o.roleTree[user.Role]
-	if !ok {
-		return subordinates, nil
-	}
-
-	for _, roleId := range subRoles {
-		if users, ok := o.usersInRole[roleId]; ok {
-			for _, u := range users {
-				subordinates = append(subordinates, u)
-				subSub, err := o.GetSubordinates(u.Id)
-				if err == nil {
-					subordinates = append(subordinates, subSub...)
-				}
-			}
-		}
-	}
 	sort.Slice(subordinates, func(i, j int) bool {
 		return subordinates[i].Id < subordinates[j].Id
-	  })
+	})
+
 	return subordinates, nil
 }
 
@@ -95,6 +81,32 @@ func (o *Organisation) SetUsers(users []User) {
 	o.mapUsersToRoles()
 }
 
+func (o *Organisation) mapSubordinates(userId int, found map[int]User) (error) {
+	user, ok := o.Users[userId]
+	
+	if !ok {
+		return fmt.Errorf("User not found")
+	}
+
+	subRoles, ok := o.roleTree[user.Role]
+	if !ok {
+		return nil
+	}
+
+	for _, roleId := range subRoles {
+		if users, ok := o.usersInRole[roleId]; ok {
+			for _, u := range users {
+				if _, ok := found[u.Id]; !ok {
+					found[u.Id] = u
+					o.mapSubordinates(u.Id, found)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (o *Organisation) mapUsersToRoles() {
 	for _, user := range o.Users {
 		if users, ok := o.usersInRole[user.Role]; ok {
@@ -102,3 +114,4 @@ func (o *Organisation) mapUsersToRoles() {
 		}
 	}
 }
+
