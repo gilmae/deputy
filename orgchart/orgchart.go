@@ -1,6 +1,9 @@
 package orgchart
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Role struct {
 	Id     int
@@ -13,6 +16,8 @@ type User struct {
 	Name string
 	Role int
 }
+
+type Users []User
 
 type Organisation struct {
 	Roles    map[int]Role
@@ -56,6 +61,9 @@ func (o *Organisation) GetSubordinates(userId int) ([]User, error) {
 			}
 		}
 	}
+	sort.Slice(subordinates, func(i, j int) bool {
+		return subordinates[i].Id < subordinates[j].Id
+	  })
 	return subordinates, nil
 }
 
