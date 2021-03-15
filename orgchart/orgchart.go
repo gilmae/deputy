@@ -117,6 +117,11 @@ func (o *Organisation) mapSubordinates(user User, found map[int]User) {
 	}
 }
 
+// There would likely be a Validate function on the Organisation struct that could be
+// used to confirm there are no circular references and that referential integrity is maintained.
+// I left that out as beyond the scope of this test, but were it in place, mapUsersToRoles would be 
+// the logical place to call it, and any Error object returned to SetRoles and SetUsers to pass back
+// up the stack
 func (o *Organisation) mapUsersToRoles() {
 	for _, user := range o.users {
 		if users, ok := o.usersInRole[user.Role]; ok {
