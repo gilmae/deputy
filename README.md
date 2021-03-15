@@ -21,11 +21,14 @@ To run the test suite, from within the deputy folder, execute:
 ## Execution
 Assuming the source was installed as above, the deputy executable can be run with:
 
-`deputy --data data_file`
+`deputy --data data_file --supervisor user_id`
 
 To execute from source directly, run:
 
-`go run main.go --data data_file`
+`go run main.go --data data_file --supervisor user_id`
+
+data_file will default to `./sample.json`
+user_id will default to `1`
 
 ### Data File
 The executable requires a data file that defines roles and users. This data file is a json file with teh format:
